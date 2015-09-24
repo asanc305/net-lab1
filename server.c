@@ -100,14 +100,16 @@ int main(int argc, char *argv[])
 		      token = strtok(NULL, del) ;
 		      len = atoi (token) ;
 		      n = recv(newsockfd, buffer, len, 0) ;
-		 
+			  if(n < 0) syserr("can't receive from client") ; 
+		      else buffer[n] = '\0' ;
+			
 		      while (n <= len)
 		      {
 		        write (in, buffer, n) ; 
 		        len = len - n ;
 		      }
 
-          close(in) ;
+			  close(in) ;
 		    }
 		    else if (strcmp(token, "get") == 0) 
 	    	{
@@ -122,14 +124,14 @@ int main(int argc, char *argv[])
 
 		      // send file
 		      n = sendfile(newsockfd, out, NULL, f_stat.st_size) ;
-          close(out) ;
+              close(out) ;
 
 		    }
 		    else if (strcmp(buffer, "ls-remote") == 0)
 		    {
-          buffer[0] = '\0' ;
-          printlist(buffer) ;
-          n = send(newsockfd, buffer, sizeof(buffer), 0) ;
+              buffer[0] = '\0' ;
+              printlist(buffer) ;
+              n = send(newsockfd, buffer, sizeof(buffer), 0) ;
 		    }
       }
     }

@@ -137,6 +137,8 @@ int main(int argc, char* argv[])
 
       //receive file
       n = recv(sockfd, buffer, sizeof(buffer), 0) ;
+	  if(n < 0) syserr("can't receive from client") ; 
+	  else buffer[n] = '\0' ;
 
       while (n <= len)
       {
@@ -152,8 +154,8 @@ int main(int argc, char* argv[])
       n = send(sockfd, buffer, sizeof(buffer), 0);
 
       n = recv(sockfd, buffer, sizeof(buffer), 0) ;
-      if(n<0) printf("error not r\n") ;
-      else buffer[n] = '\0' ;
+	  if(n < 0) syserr("can't receive from client") ; 
+	  else buffer[n] = '\0' ;
       printf("%s\n",buffer) ;
     }
     else if (strcmp(token, "ls-local") == 0 )
