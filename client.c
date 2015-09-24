@@ -69,12 +69,13 @@ void printlist()
 
 int main(int argc, char* argv[])
 {
-  int sockfd, n, connected,len, out, in ;
+  int sockfd, n, connected,len, out, total ;
   char buffer [255] ;
   char buffer2 [255] ;
   char *token ;
   char f_len [5] ;
   const char del[2] = " " ;
+  FILE *in ;
   struct stat f_stat ;
   struct hostent* server ;
 
@@ -125,28 +126,28 @@ int main(int argc, char* argv[])
       // send command and file to get and open fd
       n = send(sockfd, buffer, sizeof(buffer), 0) ;
 
-      // 
+      // create file fd
       token = strtok(NULL, del) ;
-      in = open(token, O_WRONLY | O_CREAT | O_TRUNC,
-	     S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) ;
-
-      // receive file length
-      n = recv(sockfd, buffer, sizeof(buffer), 0) ;
-      if(n>0 && buffer[n-1] == '\n') buffer[n-1] = '\0';
-      len = atoi(buffer) ;
-
-      //receive file
-      n = recv(sockfd, buffer, sizeof(buffer), 0) ;
-	  if(n < 0) syserr("can't receive from client") ; 
-	  else buffer[n] = '\0' ;
-
-      while (n <= len)
+      in = fopen( token, "w") ;
+      if ( in == NULL )
       {
-	      write (in, buffer, n) ; 
-	      len = len - n ;
+        printf("Error opening file\n") ;
       }
 
-      close(in) ;
+      // receive file size
+      n = recv(sockfd, buffer, sizeof(buffer), 0) ;
+      len = atoi(buffer) ;
+      printf("file size: %i\n", len) ;
+    
+      //receive and write
+      while ( (n > 0) && (len > 0) )
+      {
+        n = recv(sockfd, buffer, sizeof(buffer), 0) ;
+	      fwrite(buffer, sizeof(char), n, in) ; 
+	      len -=  n ;    
+      }
+
+      fclose(in) ;
     }
     else if (strcmp(token, "ls-remote") == 0 )
     {
@@ -154,8 +155,8 @@ int main(int argc, char* argv[])
       n = send(sockfd, buffer, sizeof(buffer), 0);
 
       n = recv(sockfd, buffer, sizeof(buffer), 0) ;
-	  if(n < 0) syserr("can't receive from client") ; 
-	  else buffer[n] = '\0' ;
+	    if(n < 0) syserr("can't receive from client") ; 
+	    else buffer[n] = '\0' ;
       printf("%s\n",buffer) ;
     }
     else if (strcmp(token, "ls-local") == 0 )
@@ -165,6 +166,7 @@ int main(int argc, char* argv[])
     }
     else if (strcmp(token, "exit") == 0 ) 
     {
+      n = send(sockfd, buffer, sizeof(buffer), 0) ;
       printf("Connection terminated\n") ;
       connected = 0 ;
     }
