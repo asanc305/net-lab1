@@ -102,15 +102,14 @@ int main(int argc, char *argv[])
 		      
 			    //receive and write file
 			    total = 0 ;
-		      while ( (n > 0) && (len > 0) )
+		      while ( (n > 0) && (len > total) )
           {
             n = recv(newsockfd, buffer, sizeof(buffer), 0) ;
 	          fwrite(buffer, sizeof(char), n, in) ; 
-	          len = len - n ;
+	          //len = len - n ;
 	          total += n ;
-	          printf("Received %d bytes: Left %d bytes\n", n, len) ;
+	          //printf("Received %d bytes: Left %d bytes\n", n, len) ;
           }
-          printf("Total bytes: %i\n", total) ;
 
 			    fclose(in) ;
 		    }

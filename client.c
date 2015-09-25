@@ -103,25 +103,31 @@ int main(int argc, char* argv[])
     {
       // get and print name of file
       token = strtok(NULL, del) ;
-      printf("upload file : %s\n", token) ;
+      printf("upload '%s' to remote server: ", token) ;
 
       // open the file descriptor and get size
       out = open(token, 0) ;
-      if (out <= 0) printf("file not opened\n") ;
-      fstat(out, &f_stat) ;
-      printf("File size %jd\n", f_stat.st_size) ;
+      if (out <= 0) printf("Error file not found\n") ;
+      else
+      {
+        fstat(out, &f_stat) ;
 
-      // send header with put command file name and size
-      strcat(buffer, " ") ;
-      sprintf(f_len, "%jd", f_stat.st_size) ;
-      strcat(buffer, f_len) ;
-      n = send(sockfd, buffer, sizeof(buffer), 0) ;
+        // send header with put command file name and size
+        strcat(buffer, " ") ;
+        sprintf(f_len, "%jd", f_stat.st_size) ;
+        strcat(buffer, f_len) ;
+        n = send(sockfd, buffer, sizeof(buffer), 0) ;
 
-      // send the file
-      n = sendfile(sockfd, out, NULL, f_stat.st_size) ;
-      printf("Bytes sent %i\n", n) ;
-  
-      close (out) ;
+        // send the file
+        n = sendfile(sockfd, out, NULL, f_stat.st_size) ;
+        if (n == f_stat.st_size) printf("Successful!\n") ;
+        else
+        {
+          printf("Error sending the file. Please tru again\n") ;
+          remove(token) ;
+        }
+        close (out) ;
+      }
     }
     else if (strcmp(token, "get") == 0 )
     {
