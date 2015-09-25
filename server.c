@@ -35,7 +35,7 @@ void printlist(char *list)
 
 int main(int argc, char *argv[])
 {
-  int sockfd, newsockfd, portno, n, out, offset, connected, len ;
+  int sockfd, newsockfd, portno, n, out, offset, connected, len, total ;
   struct sockaddr_in serv_addr, clt_addr;
   struct stat f_stat ;
   socklen_t addrlen;
@@ -98,32 +98,43 @@ int main(int argc, char *argv[])
           //get size of file
 		      token = strtok(NULL, del) ;
 		      len = atoi (token) ;
+		      printf("Len = %i\n", len) ;
 		      
 			    //receive and write file
+			    total = 0 ;
 		      while ( (n > 0) && (len > 0) )
           {
             n = recv(newsockfd, buffer, sizeof(buffer), 0) ;
 	          fwrite(buffer, sizeof(char), n, in) ; 
 	          len = len - n ;
+	          total += n ;
 	          printf("Received %d bytes: Left %d bytes\n", n, len) ;
           }
+          printf("Total bytes: %i\n", total) ;
 
 			    fclose(in) ;
 		    }
 		    else if (strcmp(token, "get") == 0) 
 	    	{
-		      // get filename, open file, get size
+		      // get filename, open file
 		      token = strtok(NULL, del) ;
 		      out = open(token, O_RDONLY) ;
-		      fstat(out, &f_stat) ;
-		      
-		      // send file size
-		      sprintf(buffer, "%jd", f_stat.st_size) ;
-		      n = send(newsockfd, buffer, sizeof(buffer), 0) ;
+		      if (out < 0)
+		      {
+		        sprintf(buffer, "%i", 0) ;
+		        send(newsockfd, buffer, sizeof(buffer), 0) ;
+		      }
+		      else
+		      {
+		        //get and send file size
+		        fstat(out, &f_stat) ; 
+		        sprintf(buffer, "%jd", f_stat.st_size) ;
+		        n = send(newsockfd, buffer, sizeof(buffer), 0) ;
           
-		      // send file
-		      n = sendfile(newsockfd, out, NULL, f_stat.st_size) ;
-          close(out) ;
+		        // send file
+		        n = sendfile(newsockfd, out, NULL, f_stat.st_size) ;
+            close(out) ;
+          }
 
 		    }
 		    else if (strcmp(buffer, "ls-remote") == 0)

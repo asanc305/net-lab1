@@ -109,6 +109,7 @@ int main(int argc, char* argv[])
       out = open(token, 0) ;
       if (out <= 0) printf("file not opened\n") ;
       fstat(out, &f_stat) ;
+      printf("File size %jd\n", f_stat.st_size) ;
 
       // send header with put command file name and size
       strcat(buffer, " ") ;
@@ -118,44 +119,60 @@ int main(int argc, char* argv[])
 
       // send the file
       n = sendfile(sockfd, out, NULL, f_stat.st_size) ;
+      printf("Bytes sent %i\n", n) ;
   
       close (out) ;
     }
     else if (strcmp(token, "get") == 0 )
     {
-      // send command and file to get and open fd
-      n = send(sockfd, buffer, sizeof(buffer), 0) ;
-
-      // create file fd
       token = strtok(NULL, del) ;
-      in = fopen( token, "w") ;
-      if ( in == NULL )
+      printf("Retrieve '%s' from remote server: ", token) ;
+      
+      in = fopen(token, "w") ;
+      if ( in == NULL ) printf("Error creating file\n") ;
+      else
       {
-        printf("Error opening file\n") ;
-      }
-
-      // receive file size
-      n = recv(sockfd, buffer, sizeof(buffer), 0) ;
-      len = atoi(buffer) ;
-      printf("file size: %i\n", len) ;
-    
-      //receive and write
-      while ( (n > 0) && (len > 0) )
-      {
+        // send command and file to get and open fd
+        n = send(sockfd, buffer, sizeof(buffer), 0) ;
+      
+        // receive file size
         n = recv(sockfd, buffer, sizeof(buffer), 0) ;
-	      fwrite(buffer, sizeof(char), n, in) ; 
-	      len -=  n ;    
-      }
-
-      fclose(in) ;
-    }
+        len = atoi(buffer) ;
+        if (len == 0)
+        {
+          printf("Error file does not exist\n") ; 
+          remove(token) ;
+        }     
+        else
+        {        
+          //receive and write
+          total = 0 ;
+          while (len > total)
+          {
+            n = recv(sockfd, buffer, sizeof(buffer), 0) ;
+	          fwrite(buffer, sizeof(char), n, in) ; 
+	          total += n ;
+	          //printf("Received %d bytes: Left %d bytes\n", n, len) ;
+          }
+          
+          //check 
+          if (total == len) printf("Successful !\n") ;
+          else
+          {
+            printf("Error receiving file. Please try again.\n") ;
+            remove(token) ;
+          }
+          fclose(in) ;
+        }
+      } 
+    }   
     else if (strcmp(token, "ls-remote") == 0 )
     {
       printf("Files at server (%s) :\n", server->h_name ) ;
       n = send(sockfd, buffer, sizeof(buffer), 0);
 
       n = recv(sockfd, buffer, sizeof(buffer), 0) ;
-	    if(n < 0) syserr("can't receive from client") ; 
+	    if(n < 0) printf("Error! Please Try Again\n") ; 
 	    else buffer[n] = '\0' ;
       printf("%s\n",buffer) ;
     }
@@ -167,10 +184,10 @@ int main(int argc, char* argv[])
     else if (strcmp(token, "exit") == 0 ) 
     {
       n = send(sockfd, buffer, sizeof(buffer), 0) ;
-      printf("Connection terminated\n") ;
+      printf("Connection to server %s terminated. Bye Now!\n", server->h_name) ;
       connected = 0 ;
     }
-    else  printf("Command %s does not exist\n", buffer) ;
+    else  printf("Command %s does not exist!\n", buffer) ;
   }
   
   close(sockfd);
