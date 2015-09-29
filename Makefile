@@ -1,10 +1,10 @@
-all:	client server
+all: myftpclient myftpserver
 
-tcpclient: client.c
-	gcc -Wall $< -o $@
+myftpclient: client.c
+	gcc -o myftpclient client.c
 
-tcpserver: server.c
-	gcc -Wall $< -o $@
+myftpserver: server.c
+	gcc -o myftpserver server.c
 
 clean:
-	rm -f client server *.o *~ core
+	rm -f myftpclient myftpserver *.o *~ core

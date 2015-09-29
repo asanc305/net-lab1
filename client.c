@@ -92,8 +92,8 @@ int main(int argc, char* argv[])
   while (connected)
   {
     // get message from console
-    printf("PLEASE ENTER MESSAGE: ");
-    fgets(buffer, sizeof(buffer), stdin);;
+    printf("PLEASE ENTER MESSAGE: ") ;
+    fgets(buffer, 255, stdin) ;
     n = strlen(buffer) ;
     if(n>0 && buffer[n-1] == '\n') buffer[n-1] = '\0';
     strncpy(buffer2, buffer, n) ;
@@ -156,9 +156,9 @@ int main(int argc, char* argv[])
           while (len > total)
           {
             n = recv(sockfd, buffer, sizeof(buffer), 0) ;
-	          fwrite(buffer, sizeof(char), n, in) ; 
-	          total += n ;
-	          //printf("Received %d bytes: Left %d bytes\n", n, len) ;
+            fwrite(buffer, sizeof(char), n, in) ; 
+            total += n ;
+            //printf("Received %d bytes: Left %d bytes\n", n, len) ;
           }
           
           //check 
@@ -178,8 +178,8 @@ int main(int argc, char* argv[])
       n = send(sockfd, buffer, sizeof(buffer), 0);
 
       n = recv(sockfd, buffer, sizeof(buffer), 0) ;
-	    if(n < 0) printf("Error! Please Try Again\n") ; 
-	    else buffer[n] = '\0' ;
+      if(n < 0) printf("Error! Please Try Again\n") ; 
+      else buffer[n] = '\0' ;
       printf("%s\n",buffer) ;
     }
     else if (strcmp(token, "ls-local") == 0 )
@@ -194,6 +194,7 @@ int main(int argc, char* argv[])
       connected = 0 ;
     }
     else  printf("Command %s does not exist!\n", buffer) ;
+    
   }
   
   close(sockfd);

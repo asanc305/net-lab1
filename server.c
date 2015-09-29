@@ -35,23 +35,18 @@ void printlist(char *list)
 
 int main(int argc, char *argv[])
 {
-  int sockfd, newsockfd, portno, n, out, offset, connected, len, total ;
+  int sockfd, newsockfd, portno, n, out, connected, len, total ;
   struct sockaddr_in serv_addr, clt_addr;
   struct stat f_stat ;
   socklen_t addrlen;
   pid_t child ;
   char buffer[255] ;
-  char f_name [200] ;
   char *token ;
   FILE *in ;
   const char del[2] = " " ;
   
-  if(argc != 2) 
-  { 
-	  fprintf(stderr,"Usage: %s <port>\n", argv[0]);
-	  return 1;
-  } 
-  portno = atoi(argv[1]);
+  if(argc != 2) portno = 5555 ;
+  else portno = atoi(argv[1]) ;
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0); 
   if(sockfd < 0) syserr("can't open socket"); 
