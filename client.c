@@ -21,11 +21,8 @@ int connection(char * args[])
   struct sockaddr_in serv_addr;
 
   server = gethostbyname(args[1]);
-  if(!server) 
-  {
-    fprintf(stderr, "ERROR: no such host: %s\n", args[1]);
-  }
-  portno = atoi(args[2]);
+  if(!server) fprintf(stderr, "ERROR: no such host: %s\n", args[1]) ;
+  portno = atoi(args[2]) ;
 
   sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if(sockfd < 0) syserr("can't open socket");
@@ -63,8 +60,7 @@ void printlist()
     
     (void) closedir (dp) ;
   }
-  else
-    printf ("Couldn't open the dir\n");
+  else printf ("Couldn't open the dir\n") ;
 }
 
 int main(int argc, char* argv[])
